@@ -18,5 +18,5 @@ rkhunter --update
 auditctl -e 1
 aa-enforce /etc/apparmor.d/usr.bin.firefox
 sysctl -n net.ipv4.tcp_syncookies
-ufw limit ssh\tcp
+ufw limit ssh/tcp
 ufw deny ftp
