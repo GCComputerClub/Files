@@ -1,31 +1,112 @@
 #!/bin/bash
-apt-get install gufw auditd audispd-plugins bum fail2ban libpam-cracklib rkhunter clamav clamtk openssl clamav-daemon
+#AUTHOR: HECHEN HU
+
+
+
+#USE THREE EMPTY LINES FOR SEPARATING EACH SECTION; MAKE SURE TO ADD COMMENTS
+#All back up files will be put in /backUp and named with their original directory
+#All script related files will be put in /script
+#All recorded system information will be put in /sysInfo
+
+
+
+#Desktop directory
+Desktop="/home/user/Desktop"
+
+
+
+#Record all packages installed, all services active
+mkdir "$Desktop"/sysInfo
+apt list --installed > "$Desktop"/sysInfo/appList.txt
+service --status-all > "$Desktop"/sysInfo/service.txt
+
+
+
+#Check if there are any kali tools installed
+grep -Ff "$Desktop"/script/Kali_Tools_List.txt "$Desktop"/sysInfo/appList.txt > "$Desktop"/sysInfo/Kali_Matched.txt
+
+
+
+#General updates and install programs on the checklist
+apt-get --assume-yes install gufw auditd audispd-plugins bum fail2ban libpam-cracklib rkhunter clamav clamtk openssl clamav-daemon apparmor apparmor-utils
+apt-get --assume-yes install syslogd
 apt-get update
 apt-get upgrade
 apt-get dist-upgrade
 apt-get autoclean
 apt-get autoremove
-apt-get install apparmor apparmor-utils
-rkhunter --update
-auditctl -e 1
+
+
+
+#Set log level to "low" for ufw
+sudo sed -i '/^LOGLEVEL/s/=.*/=low/' /etc/ufw/ufw.conf
+
+
+
+#Check and fix dependencies
+apt-get check
+apt-get --assume-yes -f install
+
+
+
+#General scan
 aa-enforce /etc/apparmor.d/usr.bin.firefox
-sysctl -n net.ipv4.tcp_syncookies
-ufw limit ssh/tcp
-ufw deny ftp
-
-mkdir /home/user/Desktop/backUp
-cat /etc/sysctl.conf > /home/user/Desktop/backUp/$(ls /etc/sysctl.conf)
-cat /etc/login.defs > /home/user/Desktop/backUp/$(ls /etc/login.defs)
-cat /etc/pam.d/system-login > /home/user/Desktop/backUp/$(ls /etc/pam.d/system-logins)
-cat /etc/pam.d/passwd > /home/user/Desktop/backUp/$(ls /etc/pam.d/passwd)
-cat /etc/lightdm/lightdm.conf > /home/user/Desktop/backUp/$(ls /etc/lightdm/lightdm.conf)
-cat /etc/ssh/sshd_config > /home/user/Desktop/backUp/$(ls /etc/ssh/sshd_config)
-
-echo -e “# This file contains the auditctl rules that are loaded/n # whenever the audit daemon is started via the initscripts./n # The rules are simply the parameters that would be passed/n # to auditctl.\n # First rule - delete all /n -D /n # Increase the buffers to survive stress events. /n # Make this bigger for busy systems/n -b 1024/n -a exit,always -S unlink -S rmdir /n -a exit,always -S stime.*/n -a exit,always -S setrlimit.*/n -w /var/www -p wa /n -w /etc/group -p wa /n -w /etc/passwd -p wa /n -w /etc/shadow -p wa /n -w /etc/sudoers -p wa /n # Disable adding any additional rules - note that adding *new* rules will require a reboot /n -e 2 ” > /etc/audit/audit.rules
-
 rkhunter --update
 rkhunter --checkall
 freshclam
+
+
+
+#Network enforcement and firewall configuration
+sysctl -n net.ipv4.tcp_syncookies
+ufw default deny
+ufw limit 514/udp
+
+ufw allow ssh
+ufw limit ssh/tcp
+ufw deny ftp
+
+
+
+#Backup all configuration files for 
+mkdir "$Desktop"/backUp
+cat /etc/sysctl.conf > "$Desktop"/backUp/$(ls /etc/sysctl.conf)
+cat /etc/login.defs > "$Desktop"/backUp/$(ls /etc/login.defs)
+cat /etc/pam.d/system-login > "$Desktop"/backUp/$(ls /etc/pam.d/system-logins)
+cat /etc/pam.d/passwd > "$Desktop"/backUp/$(ls /etc/pam.d/passwd)
+cat /etc/lightdm/lightdm.conf > "$Desktop"/backUp/$(ls /etc/lightdm/lightdm.conf)
+cat /etc/ssh/sshd_config > "$Desktop"/backUp/$(ls /etc/ssh/sshd_config)
+
+
+
+#Start Audit and add Audit rules
+auditctl -e 1
+cat "$Desktop"/script/Audit_Rules.txt > /etc/audit/audit.rules
+
+
+
+#Add syslog configuration file and change permissions of log files
+cat "$Desktop"/script/Syslog_conf.txt > /etc/syslog.conf
+chmod 0640 /var/log/messages
+chmod 0640 /var/log/daemon.log
+chmod 0640 /var/log/cron.log
+chmod 0600 /var/log/auth.log
+chmod 0600 /var/log/critical.log
+
+
+
+#Collect all log files for further analysis
+mkdir "$Desktop"/sysInfo/logFiles
+cp --recursive /var/log "$Desktop"/sysInfo/logFiles
+
+
+
+#Check for ShellShock
+env x='() { :;}; echo vulnerable' bash -c "echo this is a test"
+
+
+
+#Display a cool banner; Operation launch!
 cat << "EOF"
   _________________ _________                               __                 _________ .__       ___.                                    
  /  _____/\_   ___ \\_   ___ \  ____   _____ ______  __ ___/  |_  ___________  \_   ___ \|  |  __ _\_ |__                                  

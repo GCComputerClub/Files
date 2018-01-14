@@ -1,0 +1,81 @@
+#;
+#; /etc/syslog.conf
+#; Recommended syslog configuration.
+#;
+#; +----------------------------------------------------+
+#; | Author:   DePaul University Computer Security Team |
+#; |           WWW:  <http://security.depaul.edu/>      |
+#; |           SMTP: <security@infosec.depaul.edu>      |
+#; +----------------------------------------------------+
+#;
+#; Copyright (c) 2003. DePaul University. All Rights Reserved.
+#;
+#;
+#; Platform: Tested on the following platforms:
+#;              OpenBSD 3.1, 3.2, 3.3, 3.4, 3.5
+#;              FreeBSD 4.4, 4.5, 4.6
+#;              Solaris 2.6, 2.7
+#;
+#; Notes:    Syslog requires TAB delimitation between facility and
+#;           destination. Log files MUST exist prior to the start of
+#;           syslogd. This file will be reread by sending a SIGHUP to
+#;           syslogd.
+#;
+#;           Recommended file permissions:
+#;
+#;              0640  	/var/log/messages
+#;              0640 	/var/log/daemon.log
+#;              0640 	/var/log/cron.log
+#;              0600    /var/log/auth.log
+#;              0600    /var/log/critical.log
+#;
+#;           If you do not audit your logs, the time spent putting this
+#;           in place will be wasted. Audit logs regularly!!
+#;
+#; Revised:  $Id: syslog.conf,v 1.2 2004/04/29 20:49:31 epancer Exp $     
+#;
+
+#; Send general messages to the console.
+*.err;kern.debug				/dev/console
+auth.notice;authpriv.none			/dev/console
+
+#; The "Readers Digest" version of critical system failures that
+#; management staff, at least, should pay attention to.
+*.err;*.crit;*.emerg				/var/log/critical.log
+
+#; Next, we define where most daemons and applications
+*.notice					/var/log/messages
+
+#; Do not log auth/authpriv messages here; rather log them to
+#; a separate file for processing by security staff. 
+auth,authpriv.none				/var/log/messages
+auth,authpriv.debug				/var/log/auth.log
+
+cron.info					/var/log/cron.log
+news,kern,lpr,daemon,ftp,mail.info		/var/log/daemon.log
+
+#; For more critical errors tell root. Keep user-land messages out of
+#; the way.
+*.err;user.none					root
+
+#; In emergencies, wall the users. Note we restrict user-land messages
+#; from being able to do this as it might annoy those logged in.
+*.emerg;user.none				*
+
+#; The definition of "loghost" should be placed in /etc/hosts to
+#; prevent DNS spoofing. A sample entry of this follows.
+#;
+#; 10.197.213.1		loghost.depaul.edu	loghost
+#;
+#; Send all informational messages, critical warnings and emergency
+#; conditions to the remote log server EXCEPT for authpriv messages 
+#; that can be intercepted from the network.
+#;
+#; Uncomment out the following if you have a loghost defined and
+#; wish to log to such a location. Note that messages sent over the
+#; network MAY EXPOSE sensitive information or data. Beware.
+#*.err;*.emerg;*.crit;auth,authpriv.debug		@loghost
+
+#; 
+# vim: ts=8 sw=8 nowrap
+#; 
