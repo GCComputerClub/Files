@@ -23,7 +23,9 @@ service --status-all > "$Desktop"/sysInfo/service.txt
 
 
 #Check if there are any kali tools installed
+echo "Checking Kali Tool's presence"
 grep -Ff "$Desktop"/script/Kali_Tools_List.txt "$Desktop"/sysInfo/appList.txt > "$Desktop"/sysInfo/Kali_Matched.txt
+echo "Task Finish"
 
 
 
