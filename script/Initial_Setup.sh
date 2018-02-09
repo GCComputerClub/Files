@@ -7,11 +7,12 @@
 #All back up files will be put in /backUp and named with their original directory
 #All script related files will be put in /script
 #All recorded system information will be put in /sysInfo
+#Run the script with the absolute path of Desktop as the argument
 
 
 
 #Desktop directory
-Desktop="/home/user/Desktop"
+Desktop=$1
 
 
 
@@ -26,6 +27,12 @@ service --status-all > "$Desktop"/sysInfo/service.txt
 echo "Checking Kali Tool's presence"
 grep -Ff "$Desktop"/script/Kali_Tools_List.txt "$Desktop"/sysInfo/appList.txt > "$Desktop"/sysInfo/Kali_Matched.txt
 echo "Task Finish"
+
+
+
+#Chekc for media files
+locate <$("$Desktop"/script/Video_Files_Format.txt) > "$Desktop"/sysInfo/Video_Matched.txt
+locate <$("$Desktop"/script/Audio_Files_Format.txt) > "$Desktop"/sysInfo/Audio_Matched.txt
 
 
 

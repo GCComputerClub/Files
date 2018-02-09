@@ -1,0 +1,1 @@
+.ogv .ogg .vob .flv .mkv .gif .drc .gifv .mng .avi .mov .qt .wmv .yuv .rm .rmvb .asf .amv .mp4 .m4p .m4v .mpg .mp2 .mpeg .mpe .mpv .svi .3gp .3g2 .mxf .roq .nsv .f4v .f4p .f4a .f4b
